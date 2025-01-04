@@ -383,6 +383,28 @@ class JOUEUR:
         self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
         self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
 
+    def tir(self, current_time):
+        if current_time - self.DernierTirDelai > self.cooldown and not self.BalleTiree:
+            self.BalleTiree = True
+            self.DernierTirDelai = current_time
+            self.XBalleA, self.YBalleA = self.Hx_PG - 2, self.Hy_PG - int(self.LongBalle/2) # position balle canon gauche
+            self.XBalleB, self.YBalleB = self.Hx_PD - 2, self.Hy_PD - int(self.LongBalle/2) #position balle canon droit
+            self.HitboxBalleA = pygame.Rect(self.XBalleA, self.YBalleA, self.LargBalle, self.LongBalle) #hitbox balle A
+            self.HitboxBalleB = pygame.Rect(self.XBalleB, self.YBalleB, self.LargBalle, self.LongBalle) #hitbox balle A
+
+    def update_balle(self):
+        if self.BalleTiree:
+            self.YBalleA -= self.VitBalle
+            self.HitboxBalleA.x = self.XBalleA
+            self.HitboxBalleA.y = self.YBalleA
+            self.YBalleB -= self.VitBalle
+            self.HitboxBalleB.x = self.XBalleA
+            self.HitboxBalleB.y = self.YBalleA
+            pygame.draw.rect(fenetre, ROUGE_CLAIR, (joueur.XBalleA, joueur.YBalleA, joueur.LargBalle, joueur.LongBalle))
+            pygame.draw.rect(fenetre, ROUGE_CLAIR, (joueur.XBalleB, joueur.YBalleB, joueur.LargBalle, joueur.LongBalle))
+            if self.YBalleA < 0:
+                self.BalleTiree = False
+
 joueur = JOUEUR()
 
 n=0
@@ -393,6 +415,9 @@ while True:
         if event.type == pygame.QUIT:
             pygame.display.quit()
             sys.exit()
+
+    #pour calculer le cooldown du tir
+    current_time = pygame.time.get_ticks()
 
     #pour récupérer les touches pressées
     keys = pygame.key.get_pressed()
@@ -409,6 +434,10 @@ while True:
     joueur.dessine()
     joueur.bouge()
 
+    #si le joueur tir
+    if keys[pygame.K_SPACE] and not joueur.BalleTiree:
+        joueur.tir(current_time)
+    joueur.update_balle()
 
     pygame.display.flip()
 
@@ -425,7 +454,6 @@ NOTE :
     si on déplace le vaisseau à gauche ou à droite --> faire pencher le vaisseau (à faire en dernier)
 
 A FAIRE :
-    finir le vaisseau
     faire les astéroides --> faire la barre de vie et le score
     faire cinématique de début (vaisseau qui décolle) --> si le joueur perd on repasse sur cet écran
 """
