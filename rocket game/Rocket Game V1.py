@@ -7,7 +7,7 @@ HAUTEUR = 600
 
 pygame.display.init()
 fenetre = pygame.display.set_mode((LARGEUR, HAUTEUR))
-pygame.display.set_caption("jeu fusée")
+pygame.display.set_caption("SpaceShooter")
 
 #couleurs (rgb)
 
@@ -20,6 +20,7 @@ GRIS_FONCER = (120, 120, 120)
 BLEU = (0, 0, 255)
 BLEU_CLAIR = (100, 100, 255)
 ROUGE_CLAIR = (255, 100, 100)
+MARRON = (169, 114, 80)
 
 NB_ETOILES = 30 # --> la classe gère 3 étoile à la fois, donc il y a 90 étoiles
 
@@ -72,59 +73,60 @@ class JOUEUR:
         """
         signification abréviation:
 
-        PP --> partie principale
-        PG --> partie gauche
-        PD --> partie droite
-        PR --> partie réacteur
-        PRC --> partie réacteur centre
+        PP --> partie principale --> H 40px
+        PG --> partie gauche --> H 25px
+        PD --> partie droite --> H 25px
+        PR --> partie réacteur --> H 20px
+        PRC --> partie réacteur centre --> H 10px
         """
         #*****************Partie Principale*****************
 
         # hauteur
-        self.Hx_PP, self.Hy_PP = 250, 260
+        self.Hx_PP, self.Hy_PP = 400, 400
         # sommet gauche
-        self.Gx_PP, self.Gy_PP = 240, 300
+        self.Gx_PP, self.Gy_PP = 390, 440
         # sommet droit
-        self.Dx_PP, self.Dy_PP = 260, 300
+        self.Dx_PP, self.Dy_PP = 410, 440
         # ensemble
         self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
 
         #*****************Partie Gauche*****************
 
         # hauteur
-        self.Hx_PG, self.Hy_PG = 240, 275
+        self.Hx_PG, self.Hy_PG = 390, 415
         # sommet gauche
-        self.Gx_PG, self.Gy_PG = 235, 300
-        # sommet droit
-        self.Dx_PG, self.Dy_PG = 245, 300
+        self.Gx_PG, self.Gy_PG = 385, 440
+        # sommet droi
+        self.Dx_PG, self.Dy_PG = 395, 440
         # ensemble
         self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
 
         #*****************Partie Droite*****************
 
         # hauteur
-        self.Hx_PD, self.Hy_PD = 260, 275
+        self.Hx_PD, self.Hy_PD = 410, 415
         # sommet gauche
-        self.Gx_PD, self.Gy_PD = 255, 300
+        self.Gx_PD, self.Gy_PD = 405, 440
         # sommet droit
-        self.Dx_PD, self.Dy_PD = 265, 300
+        self.Dx_PD, self.Dy_PD = 415, 440
         # ensemble
         self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
 
         #*****************Partie réacteur*****************
 
         # Hauteur réacteur
-        self.Hx_PR, self.Hy_PR = 250, 320
-        self.Hx_PRC, self.Hy_PRC = 250, 310
+        self.Hx_PR, self.Hy_PR = 400, 460
+        self.Hx_PRC, self.Hy_PRC = 400, 450
         # sommet gauche
-        self.Gx_PR, self.Gy_PR = 245, 300
-        self.Gx_PRC, self.Gy_PRC = 248, 300
+        self.Gx_PR, self.Gy_PR = 395, 440
+        self.Gx_PRC, self.Gy_PRC = 398, 440
         # sommet droit
-        self.Dx_PR, self.Dy_PR = 255, 300
-        self.Dx_PRC, self.Dy_PRC = 252, 300
+        self.Dx_PR, self.Dy_PR = 405, 440
+        self.Dx_PRC, self.Dy_PRC = 402, 440
         # ensemble
         self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
         self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
+
 
         #*****************Autre données*****************
         self.compteur = 0
@@ -135,6 +137,8 @@ class JOUEUR:
         self.XBalleB, self.YBalleB = self.Hx_PD - 2, self.Hy_PD - int(self.LongBalle/2) #position balle canon droit
         self.BalleTiree = False
         self.DernierTirDelai = 0
+        self.HitboxBalleA = pygame.Rect(self.XBalleA, self.YBalleA, self.LargBalle, self.LongBalle) #hitbox balle A
+        self.HitboxBalleB = pygame.Rect(self.XBalleB, self.YBalleB, self.LargBalle, self.LongBalle) #hitbox balle
 
     def dessine(self):
         pygame.draw.polygon(fenetre, GRIS_FONCER,  self.trg_PP)
@@ -389,8 +393,6 @@ class JOUEUR:
             self.DernierTirDelai = current_time
             self.XBalleA, self.YBalleA = self.Hx_PG - 2, self.Hy_PG - int(self.LongBalle/2) # position balle canon gauche
             self.XBalleB, self.YBalleB = self.Hx_PD - 2, self.Hy_PD - int(self.LongBalle/2) #position balle canon droit
-            self.HitboxBalleA = pygame.Rect(self.XBalleA, self.YBalleA, self.LargBalle, self.LongBalle) #hitbox balle A
-            self.HitboxBalleB = pygame.Rect(self.XBalleB, self.YBalleB, self.LargBalle, self.LongBalle) #hitbox balle A
 
     def update_balle(self):
         if self.BalleTiree:
@@ -406,6 +408,79 @@ class JOUEUR:
                 self.BalleTiree = False
 
 joueur = JOUEUR()
+
+class METEOR:
+    def __init__(self):
+        self.rayon = 20 # rayon
+        self.reset()
+
+    def reset(self):
+        """Réinitialise les propriétés du météore."""
+        self.MVitY = randint(1, 4)  # Vitesse Y
+        self.MVitX = randint(1, 4)  # Vitesse X
+        self.Mx = randint(-self.rayon, LARGEUR + self.rayon)  # Position X
+
+        # Définir la position initiale et la direction
+        if 0 <= self.Mx <= LARGEUR:  # Si X est dans la fenêtre --> Y est au-dessus
+            self.My = -self.rayon
+            self.direction = randint(0, 1)  # Direction aléatoire
+
+        elif self.Mx < 0:  # Si X est à gauche de la fenêtre --> Y est aléatoire
+            self.My = randint(-self.rayon, HAUTEUR // 2)
+            self.direction = 1  # Direction --> à droite
+
+        else:  # Si X est à droite de la fenêtre --> Y est aléatoire
+            self.My = randint(-self.rayon, HAUTEUR // 2)
+            self.direction = 0  # Direction --> à gauche
+
+        # gérer la hitbox
+        self.hitbox = pygame.Rect(self.Mx, self.My, self.rayon*2, self.rayon*2)
+
+    def dessine(self):
+        pygame.draw.circle(fenetre, MARRON, (self.Mx, self.My), self.rayon)
+
+    def bouge(self):
+        # si MVitX non nul :
+        if self.direction == 0: # déplacement vers la gauche
+            self.Mx -= self.MVitX
+        else: # déplacement vers la droite
+            self.Mx += self.MVitX
+        self.My += self.MVitY
+        self.hitbox.x = self.Mx
+        self.hitbox.y = self.My
+
+        # Vérifier si le météore quitte la fenêtre
+        if (self.Mx < -self.rayon or self.Mx > LARGEUR + self.rayon) or self.My > HAUTEUR + self.rayon:
+            self.reset()
+        # Vérifier si le météor a été touché
+        if joueur.BalleTiree:
+            # Vérifier si les deux balles touchent en même temps
+            if (
+                joueur.HitboxBalleA
+                and joueur.HitboxBalleB
+                and joueur.HitboxBalleA.colliderect(self.hitbox)
+                and joueur.HitboxBalleB.colliderect(self.hitbox)
+            ):
+                print("Les deux balles touchent le météore simultanément.")
+                self.reset()
+
+            # Vérifier si seulement la balle A touche
+            elif joueur.HitboxBalleA and joueur.HitboxBalleA.colliderect(self.hitbox):
+                print("Collision avec la balle A détectée.")
+                self.reset()
+
+            # Vérifier si seulement la balle B touche
+            elif joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox):
+                print("Collision avec la balle B détectée.")
+                self.reset()
+
+
+
+# Initialisation des météores
+NB_METEOR = 5
+METEORS = [METEOR() for _ in range(NB_METEOR)]
+
+#*****************Boucle Principale*****************
 
 n=0
 fps = pygame.time.Clock()
@@ -434,18 +509,22 @@ while True:
     joueur.dessine()
     joueur.bouge()
 
+    for meteors in METEORS:
+        meteors.bouge()
+        meteors.dessine()
+
     #si le joueur tir
     if keys[pygame.K_SPACE] and not joueur.BalleTiree:
         joueur.tir(current_time)
+
     joueur.update_balle()
 
     pygame.display.flip()
 
-
     fps.tick(60)
     n += 1
-    if n == 6:
-        print(fps)
+    if n == 10:
+        #print(fps)
         n = 0
 
 """
