@@ -400,8 +400,8 @@ class JOUEUR:
             self.HitboxBalleA.x = self.XBalleA
             self.HitboxBalleA.y = self.YBalleA
             self.YBalleB -= self.VitBalle
-            self.HitboxBalleB.x = self.XBalleA
-            self.HitboxBalleB.y = self.YBalleA
+            self.HitboxBalleB.x = self.XBalleB
+            self.HitboxBalleB.y = self.YBalleB
             pygame.draw.rect(fenetre, ROUGE_CLAIR, (joueur.XBalleA, joueur.YBalleA, joueur.LargBalle, joueur.LongBalle))
             pygame.draw.rect(fenetre, ROUGE_CLAIR, (joueur.XBalleB, joueur.YBalleB, joueur.LargBalle, joueur.LongBalle))
             if self.YBalleA < 0:
@@ -454,27 +454,16 @@ class METEOR:
             self.reset()
         # Vérifier si le météor a été touché
         if joueur.BalleTiree:
-            # Vérifier si les deux balles touchent en même temps
-            if (
-                joueur.HitboxBalleA
-                and joueur.HitboxBalleB
-                and joueur.HitboxBalleA.colliderect(self.hitbox)
-                and joueur.HitboxBalleB.colliderect(self.hitbox)
-            ):
-                print("Les deux balles touchent le météore simultanément.")
+            if joueur.HitboxBalleA and joueur.HitboxBalleA.colliderect(self.hitbox):
+                if joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox):
+                    self.reset()
+                    joueur.BalleTiree = False
+                else:
+                    self.reset()
+                    joueur.BalleTiree = False
+            if joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox):
                 self.reset()
-
-            # Vérifier si seulement la balle A touche
-            elif joueur.HitboxBalleA and joueur.HitboxBalleA.colliderect(self.hitbox):
-                print("Collision avec la balle A détectée.")
-                self.reset()
-
-            # Vérifier si seulement la balle B touche
-            elif joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox):
-                print("Collision avec la balle B détectée.")
-                self.reset()
-
-
+                joueur.BalleTiree = False
 
 # Initialisation des météores
 NB_METEOR = 5
@@ -524,7 +513,7 @@ while True:
     fps.tick(60)
     n += 1
     if n == 10:
-        #print(fps)
+        print(fps)
         n = 0
 
 """
