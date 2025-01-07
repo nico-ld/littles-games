@@ -20,6 +20,8 @@ GRIS_FONCER = (120, 120, 120)
 BLEU = (0, 0, 255)
 BLEU_CLAIR = (100, 100, 255)
 ROUGE_CLAIR = (255, 100, 100)
+ROUGE = (255, 0, 0)
+VERT = (0, 255, 0)
 MARRON = (169, 114, 80)
 
 NB_ETOILES = 30 # --> la classe gère 3 étoile à la fois, donc il y a 90 étoiles
@@ -136,9 +138,11 @@ class JOUEUR:
         self.XBalleA, self.YBalleA = self.Hx_PG - 2, self.Hy_PG - int(self.LongBalle/2) # position balle canon gauche
         self.XBalleB, self.YBalleB = self.Hx_PD - 2, self.Hy_PD - int(self.LongBalle/2) #position balle canon droit
         self.BalleTiree = False
+        self.BalleATiree = False
+        self.BalleBTiree = False
         self.DernierTirDelai = 0
         self.HitboxBalleA = pygame.Rect(self.XBalleA, self.YBalleA, self.LargBalle, self.LongBalle) #hitbox balle A
-        self.HitboxBalleB = pygame.Rect(self.XBalleB, self.YBalleB, self.LargBalle, self.LongBalle) #hitbox balle
+        self.HitboxBalleB = pygame.Rect(self.XBalleB, self.YBalleB, self.LargBalle, self.LongBalle) #hitbox balle B
 
     def dessine(self):
         pygame.draw.polygon(fenetre, GRIS_FONCER,  self.trg_PP)
@@ -411,27 +415,40 @@ joueur = JOUEUR()
 
 class METEOR:
     def __init__(self):
-        self.rayon = 20 # rayon
+        self.detruit = False
         self.reset()
+        self.division()
 
     def reset(self):
         """Réinitialise les propriétés du météore."""
-        self.MVitY = randint(1, 4)  # Vitesse Y
+        self.rayon = randint(15, 30) # rayon
         self.MVitX = randint(1, 4)  # Vitesse X
-        self.Mx = randint(-self.rayon, LARGEUR + self.rayon)  # Position X
+        self.Mx = randint(1, 2)
 
         # Définir la position initiale et la direction
-        if 0 <= self.Mx <= LARGEUR:  # Si X est dans la fenêtre --> Y est au-dessus
+        if self.Mx == 1:  # Si X est dans la fenêtre --> Y est au-dessus
+            self.MVitY = randint(1, 4)  # Vitesse Y
+            self.Mx = randint(-self.rayon, LARGEUR + self.rayon)  # Position X
             self.My = -self.rayon
             self.direction = randint(0, 1)  # Direction aléatoire
+        else:
+            self.Mx = randint(0, 1)  # Position X
+            if self.Mx == 0:  # Si X est à gauche de la fenêtre --> Y est aléatoire
+                self.Mx = 0 - self.rayon
+                self.My = randint(-self.rayon, HAUTEUR)
+                self.direction = 1  # Direction --> à droite
 
-        elif self.Mx < 0:  # Si X est à gauche de la fenêtre --> Y est aléatoire
-            self.My = randint(-self.rayon, HAUTEUR // 2)
-            self.direction = 1  # Direction --> à droite
+            else:  # Si X est à droite de la fenêtre --> Y est aléatoire
+                self.Mx = LARGEUR + self.rayon
+                self.My = randint(-self.rayon, HAUTEUR)
+                self.direction = 0  # Direction --> à gauche
+            if self.My > self.rayon*2:
+                self.MVitY = randint(0, 4)  # Vitesse Y
+            else:
+                self.MVitY = randint(1, 4)  # Vitesse Y
 
-        else:  # Si X est à droite de la fenêtre --> Y est aléatoire
-            self.My = randint(-self.rayon, HAUTEUR // 2)
-            self.direction = 0  # Direction --> à gauche
+        if self.direction == 0 : # dé placement vers la gauche
+            self.MVitX = -self.MVitX
 
         # gérer la hitbox
         self.hitbox = pygame.Rect(self.Mx, self.My, self.rayon*2, self.rayon*2)
@@ -439,31 +456,121 @@ class METEOR:
     def dessine(self):
         pygame.draw.circle(fenetre, MARRON, (self.Mx, self.My), self.rayon)
 
+
     def bouge(self):
-        # si MVitX non nul :
-        if self.direction == 0: # déplacement vers la gauche
-            self.Mx -= self.MVitX
-        else: # déplacement vers la droite
-            self.Mx += self.MVitX
+        self.Mx += self.MVitX
         self.My += self.MVitY
-        self.hitbox.x = self.Mx
-        self.hitbox.y = self.My
+        self.hitbox.x = self.Mx-self.rayon
+        self.hitbox.y = self.My-self.rayon
 
         # Vérifier si le météore quitte la fenêtre
         if (self.Mx < -self.rayon or self.Mx > LARGEUR + self.rayon) or self.My > HAUTEUR + self.rayon:
             self.reset()
+
         # Vérifier si le météor a été touché
         if joueur.BalleTiree:
-            if joueur.HitboxBalleA and joueur.HitboxBalleA.colliderect(self.hitbox):
-                if joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox):
+            if joueur.HitboxBalleA and joueur.HitboxBalleA.colliderect(self.hitbox): #si la balle A touche
+                if joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox): # on vérifie pour la balle B
+                    joueur.BalleTiree = False # on arrete le tir
+                    if self.rayon < 23: # on vérifie la taille du météor --> évite de trop petit météor
+                        self.reset()
+                    else: # si assez grand on le divise
+                        self.detruit = True
+                        self.division()
+
+                else: # si la balle B touche pas
+                    joueur.BalleTiree = False # on arrete le tir
+                    if self.rayon < 20: # on vérifie la taille du météor --> évite de trop petit météor
+                        self.reset()
+                    else: # si assez grand on le divise
+                        self.detruit = True
+                        self.division()
+
+            elif joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox): # si la balle b touche --> léger problème de detection
+                joueur.BalleTiree = False # on arrete le tir
+                if self.rayon < 20: # on vérifie la taille du météor --> évite de trop petit météor
                     self.reset()
-                    joueur.BalleTiree = False
-                else:
-                    self.reset()
-                    joueur.BalleTiree = False
-            if joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox):
-                self.reset()
-                joueur.BalleTiree = False
+                else: # si assez grand on le divise
+                    self.detruit = True
+                    self.division()
+
+    """intervient lors de la divsion du météor"""
+    def division(self):
+        # M = moitié A ; m = moitié B
+        self.taille = int(self.rayon/2) # pour retrecir les cercles
+        self.hitbox.width, self.hitbox.height = self.rayon, self.rayon # largeur et longeur hitbox A
+        self.mx, self.my = self.Mx, self.My # la deuxième moitié à le même départ
+        self.scdHitbox = pygame.Rect(self.mx - self.taille, self.my - self.taille, self.rayon, self.rayon) # création d'une deuxième hitbox
+        self.moitieA, self.moitieB = True, True
+
+    def dessine_division(self):
+        if self.moitieA:
+            pygame.draw.circle(fenetre, ROUGE_CLAIR, (self.Mx, self.My), self.taille)
+
+        if self.moitieB:
+            pygame.draw.circle(fenetre, MARRON, (self.mx, self.my), self.taille)
+
+
+    def bouge_division(self):
+        """
+        moitié A correspond au météor mais réduit
+        """
+        #déplacement moitié A
+        self.Mx += self.MVitX
+        self.My += -self.MVitY
+        self.hitbox.x, self.hitbox.y = self.Mx-self.taille, self.My-self.taille
+
+        #déplacment moitié B
+        self.mx -= self.MVitX
+        self.my += -self.MVitY
+        self.scdHitbox.x, self.scdHitbox.y = self.mx-self.taille, self.my-self.taille
+
+        # Vérifier si la moitié A quitte la fenêtre
+        if (self.Mx < -self.taille or self.Mx > LARGEUR + self.taille) or self.My > HAUTEUR + self.taille:
+            self.moitieA = False
+        # Vérifier si la moitié B quitte la fenêtre
+        if (self.mx < -self.taille or self.mx > LARGEUR + self.taille) or self.my > HAUTEUR + self.taille:
+            self.moitieB = False
+
+        # on vérifie les collisions pour la moitié A
+        if joueur.BalleTiree and self.moitieA:
+            if joueur.HitboxBalleA and joueur.HitboxBalleA.colliderect(self.hitbox): #si la balle A touche
+                if joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox): # on vérifie pour la balle B
+                    joueur.BalleTiree = False # on arrete le tir
+                    self.moitieA = False
+
+                else: # si la balle B touche pas --> prévu en cas de modification des tirs
+                    joueur.BalleTiree = False # on arrete le tir
+                    self.moitieA = False
+                    print("toucher A (gauche)")
+
+            elif joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox): # si la balle b touche --> léger problème de detection
+                joueur.BalleTiree = False # on arrete le tir
+                self.moitieA = False
+                print("toucher A (droite)")
+
+        # on vérifie les collisions pour la moitié B
+        if joueur.BalleTiree and self.moitieB:
+            if joueur.HitboxBalleA and joueur.HitboxBalleA.colliderect(self.scdHitbox): #si la balle A touche
+                if joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.scdHitbox): # on vérifie pour la balle B
+                    joueur.BalleTiree = False # on arrete le tir
+                    self.moitieB = False
+                    print("toucher B (2 balles)")
+
+                else: # si la balle B touche pas --> prévu en cas de modification des tirs
+                    joueur.BalleTiree = False # on arrete le tir
+                    self.moitieB = False
+                    print("toucher B (gauche)")
+
+            elif joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.scdHitbox): # si la balle b touche --> léger problème de detection
+                joueur.BalleTiree = False # on arrete le tir
+                self.moitieB = False
+                print("toucher B (droite)")
+
+        # si les deux moitié sont plus la
+        if not self.moitieA and not self.moitieB :
+            self.detruit = False
+            self.reset()
 
 # Initialisation des météores
 NB_METEOR = 5
@@ -499,9 +606,12 @@ while True:
     joueur.bouge()
 
     for meteors in METEORS:
-        meteors.bouge()
-        meteors.dessine()
-
+        if not meteors.detruit:
+            meteors.bouge()
+            meteors.dessine()
+        else:
+            meteors.dessine_division()
+            meteors.bouge_division()
     #si le joueur tir
     if keys[pygame.K_SPACE] and not joueur.BalleTiree:
         joueur.tir(current_time)
@@ -517,11 +627,12 @@ while True:
         n = 0
 
 """
-NOTE :
+IDEE :
     l'idée serait de faire en sorte que les réacteurs s'allume seulement si on déplace le vaisseau
     si on déplace le vaisseau à gauche ou à droite --> faire pencher le vaisseau (à faire en dernier)
 
 A FAIRE :
-    faire les astéroides --> faire la barre de vie et le score
+    trouver un moyen de pouvoir détruir un météor divisé sans que l'autre disparaisse
+    faire la barre de vie et le score
     faire cinématique de début (vaisseau qui décolle) --> si le joueur perd on repasse sur cet écran
 """
