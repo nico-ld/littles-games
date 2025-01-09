@@ -22,6 +22,7 @@ BLEU_CLAIR = (100, 100, 255)
 ROUGE_CLAIR = (255, 100, 100)
 ROUGE = (255, 0, 0)
 VERT = (0, 255, 0)
+VERT_CLAIR = (150, 255, 150)
 MARRON = (169, 114, 80)
 
 NB_ETOILES = 30 # --> la classe gère 3 étoile à la fois, donc il y a 90 étoiles
@@ -69,353 +70,10 @@ class Etoile:
 
 mon_espace = [Etoile() for _ in range(NB_ETOILES)]
 
-class JOUEUR:
-    def __init__(self):
-        #définition points triangles
-        """
-        signification abréviation:
-
-        PP --> partie principale --> H 40px
-        PG --> partie gauche --> H 25px
-        PD --> partie droite --> H 25px
-        PR --> partie réacteur --> H 20px
-        PRC --> partie réacteur centre --> H 10px
-        """
-        #*****************Partie Principale*****************
-
-        # hauteur
-        self.Hx_PP, self.Hy_PP = 400, 400
-        # sommet gauche
-        self.Gx_PP, self.Gy_PP = 390, 440
-        # sommet droit
-        self.Dx_PP, self.Dy_PP = 410, 440
-        # ensemble
-        self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
-
-        #*****************Partie Gauche*****************
-
-        # hauteur
-        self.Hx_PG, self.Hy_PG = 390, 415
-        # sommet gauche
-        self.Gx_PG, self.Gy_PG = 385, 440
-        # sommet droi
-        self.Dx_PG, self.Dy_PG = 395, 440
-        # ensemble
-        self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
-
-        #*****************Partie Droite*****************
-
-        # hauteur
-        self.Hx_PD, self.Hy_PD = 410, 415
-        # sommet gauche
-        self.Gx_PD, self.Gy_PD = 405, 440
-        # sommet droit
-        self.Dx_PD, self.Dy_PD = 415, 440
-        # ensemble
-        self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
-
-        #*****************Partie réacteur*****************
-
-        # Hauteur réacteur
-        self.Hx_PR, self.Hy_PR = 400, 460
-        self.Hx_PRC, self.Hy_PRC = 400, 450
-        # sommet gauche
-        self.Gx_PR, self.Gy_PR = 395, 440
-        self.Gx_PRC, self.Gy_PRC = 398, 440
-        # sommet droit
-        self.Dx_PR, self.Dy_PR = 405, 440
-        self.Dx_PRC, self.Dy_PRC = 402, 440
-        # ensemble
-        self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
-        self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
-
-
-        #*****************Autre données*****************
-        self.compteur = 0
-        self.VitBalle = 50
-        self.LongBalle, self.LargBalle = 20, 4
-        self.cooldown = 250 # correspond à 0.25 secondes
-        self.XBalleA, self.YBalleA = self.Hx_PG - 2, self.Hy_PG - int(self.LongBalle/2) # position balle canon gauche
-        self.XBalleB, self.YBalleB = self.Hx_PD - 2, self.Hy_PD - int(self.LongBalle/2) #position balle canon droit
-        self.BalleTiree = False
-        self.BalleATiree = False
-        self.BalleBTiree = False
-        self.DernierTirDelai = 0
-        self.HitboxBalleA = pygame.Rect(self.XBalleA, self.YBalleA, self.LargBalle, self.LongBalle) #hitbox balle A
-        self.HitboxBalleB = pygame.Rect(self.XBalleB, self.YBalleB, self.LargBalle, self.LongBalle) #hitbox balle B
-
-    def dessine(self):
-        pygame.draw.polygon(fenetre, GRIS_FONCER,  self.trg_PP)
-        pygame.draw.polygon(fenetre, GRIS,  self.trg_PG)
-        pygame.draw.polygon(fenetre, GRIS,  self.trg_PD)
-        pygame.draw.polygon(fenetre, BLEU,  self.trg_PR)
-        pygame.draw.polygon(fenetre, BLEU_CLAIR,  self.trg_PRC)
-
-    def bouge(self):
-        #**********************************avec les flèches**********************************
-
-        # Aller à gauche
-        if keys[pygame.K_LEFT]:
-            if  self.Gx_PG-2>=0: #aller à gauche
-                #*****************Partie Principale*****************
-                self.Hx_PP -= 5
-                self.Gx_PP -= 5
-                self.Dx_PP -= 5
-                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
-                #*****************Partie Gauche*****************
-                self.Hx_PG -= 5
-                self.Gx_PG -= 5
-                self.Dx_PG -= 5
-                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
-                #*****************Partie Droite*****************
-                self.Hx_PD -= 5
-                self.Gx_PD -= 5
-                self.Dx_PD -= 5
-                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
-                #*****************Partie réacteur*****************
-                self.Hx_PR -= 5
-                self.Hx_PRC -= 5
-                self.Gx_PR -= 5
-                self.Gx_PRC -= 5
-                self.Dx_PR -= 5
-                self.Dx_PRC -= 5
-                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
-                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
-
-        # Aller à droite
-        if keys[pygame.K_RIGHT]:
-            if  self.Dx_PD+2<LARGEUR:  #aller à droite
-                #*****************Partie Principale*****************
-                self.Hx_PP += 5
-                self.Gx_PP += 5
-                self.Dx_PP += 5
-                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
-                #*****************Partie Gauche*****************
-                self.Hx_PG += 5
-                self.Gx_PG += 5
-                self.Dx_PG += 5
-                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
-                #*****************Partie Droite*****************
-                self.Hx_PD += 5
-                self.Gx_PD += 5
-                self.Dx_PD += 5
-                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
-                #*****************Partie réacteur*****************
-                self.Hx_PR += 5
-                self.Hx_PRC += 5
-                self.Gx_PR += 5
-                self.Gx_PRC += 5
-                self.Dx_PR += 5
-                self.Dx_PRC += 5
-                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
-                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
-
-        # Aller en haut
-        if keys[pygame.K_UP]:
-            if  self.Hy_PG-2>=0: #aller en haut
-                #*****************Partie Principale*****************
-                self.Hy_PP -= 5
-                self.Gy_PP -= 5
-                self.Dy_PP -= 5
-                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
-                #*****************Partie Gauche*****************
-                self.Hy_PG -= 5
-                self.Gy_PG -= 5
-                self.Dy_PG -= 5
-                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
-                #*****************Partie Droite*****************
-                self.Hy_PD -= 5
-                self.Gy_PD -= 5
-                self.Dy_PD -= 5
-                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
-                #*****************Partie réacteur*****************
-                self.Hy_PR -= 5
-                self.Hy_PRC -= 5
-                self.Gy_PR -= 5
-                self.Gy_PRC -= 5
-                self.Dy_PR -= 5
-                self.Dy_PRC -= 5
-                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
-                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
-
-        # Aller en bas
-        if keys[pygame.K_DOWN]:
-            if  self.Dy_PD+2<HAUTEUR:  #aller en bas
-                #*****************Partie Principale*****************
-                self.Hy_PP += 5
-                self.Gy_PP += 5
-                self.Dy_PP += 5
-                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
-                #*****************Partie Gauche*****************
-                self.Hy_PG += 5
-                self.Gy_PG += 5
-                self.Dy_PG += 5
-                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
-                #*****************Partie Droite*****************
-                self.Hy_PD += 5
-                self.Gy_PD += 5
-                self.Dy_PD += 5
-                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
-                #*****************Partie réacteur*****************
-                self.Hy_PR += 5
-                self.Hy_PRC += 5
-                self.Gy_PR += 5
-                self.Gy_PRC += 5
-                self.Dy_PR += 5
-                self.Dy_PRC += 5
-                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
-                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
-
-        #**********************************avec ZQSD**********************************
-
-        if keys[pygame.K_a]: # a=q touche qwerty
-            if  self.Gx_PG-2>=0: #aller à gauche
-                #*****************Partie Principale*****************
-                self.Hx_PP -= 5
-                self.Gx_PP -= 5
-                self.Dx_PP -= 5
-                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
-                #*****************Partie Gauche*****************
-                self.Hx_PG -= 5
-                self.Gx_PG -= 5
-                self.Dx_PG -= 5
-                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
-                #*****************Partie Droite*****************
-                self.Hx_PD -= 5
-                self.Gx_PD -= 5
-                self.Dx_PD -= 5
-                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
-                #*****************Partie réacteur*****************
-                self.Hx_PR -= 5
-                self.Hx_PRC -= 5
-                self.Gx_PR -= 5
-                self.Gx_PRC -= 5
-                self.Dx_PR -= 5
-                self.Dx_PRC -= 5
-                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
-                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
-
-        # Aller à droite
-        if keys[pygame.K_d]:
-            if  self.Dx_PD+2<LARGEUR:  #aller à droite
-                #*****************Partie Principale*****************
-                self.Hx_PP += 5
-                self.Gx_PP += 5
-                self.Dx_PP += 5
-                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
-                #*****************Partie Gauche*****************
-                self.Hx_PG += 5
-                self.Gx_PG += 5
-                self.Dx_PG += 5
-                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
-                #*****************Partie Droite*****************
-                self.Hx_PD += 5
-                self.Gx_PD += 5
-                self.Dx_PD += 5
-                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
-                #*****************Partie réacteur*****************
-                self.Hx_PR += 5
-                self.Hx_PRC += 5
-                self.Gx_PR += 5
-                self.Gx_PRC += 5
-                self.Dx_PR += 5
-                self.Dx_PRC += 5
-                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
-                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
-
-        # Aller en haut
-        if keys[pygame.K_w]: # w=z touche qwerty
-            if  self.Hy_PG-2>=0: #aller en haut
-                #*****************Partie Principale*****************
-                self.Hy_PP -= 5
-                self.Gy_PP -= 5
-                self.Dy_PP -= 5
-                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
-                #*****************Partie Gauche*****************
-                self.Hy_PG -= 5
-                self.Gy_PG -= 5
-                self.Dy_PG -= 5
-                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
-                #*****************Partie Droite*****************
-                self.Hy_PD -= 5
-                self.Gy_PD -= 5
-                self.Dy_PD -= 5
-                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
-                #*****************Partie réacteur*****************
-                self.Hy_PR -= 5
-                self.Hy_PRC -= 5
-                self.Gy_PR -= 5
-                self.Gy_PRC -= 5
-                self.Dy_PR -= 5
-                self.Dy_PRC -= 5
-                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
-                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
-
-        # Aller en bas
-        if keys[pygame.K_s]:
-            if  self.Dy_PD+2<HAUTEUR:  #aller en bas
-                #*****************Partie Principale*****************
-                self.Hy_PP += 5
-                self.Gy_PP += 5
-                self.Dy_PP += 5
-                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
-                #*****************Partie Gauche*****************
-                self.Hy_PG += 5
-                self.Gy_PG += 5
-                self.Dy_PG += 5
-                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
-                #*****************Partie Droite*****************
-                self.Hy_PD += 5
-                self.Gy_PD += 5
-                self.Dy_PD += 5
-                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
-                #*****************Partie réacteur*****************
-                self.Hy_PR += 5
-                self.Hy_PRC += 5
-                self.Gy_PR += 5
-                self.Gy_PRC += 5
-                self.Dy_PR += 5
-                self.Dy_PRC += 5
-                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
-                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
-
-        self.compteur +=1
-        if self.compteur<=5:
-            self.Hy_PR += 1
-            self.Hy_PRC += 1
-        elif self.compteur>5 and self.compteur<=10:
-            self.Hy_PR -= 1
-            self.Hy_PRC -= 1
-        elif self.compteur>10:
-            self.compteur=0
-        self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
-        self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
-
-    def tir(self, current_time):
-        if current_time - self.DernierTirDelai > self.cooldown and not self.BalleTiree:
-            self.BalleTiree = True
-            self.DernierTirDelai = current_time
-            self.XBalleA, self.YBalleA = self.Hx_PG - 2, self.Hy_PG - int(self.LongBalle/2) # position balle canon gauche
-            self.XBalleB, self.YBalleB = self.Hx_PD - 2, self.Hy_PD - int(self.LongBalle/2) #position balle canon droit
-
-    def update_balle(self):
-        if self.BalleTiree:
-            self.YBalleA -= self.VitBalle
-            self.HitboxBalleA.x = self.XBalleA
-            self.HitboxBalleA.y = self.YBalleA
-            self.YBalleB -= self.VitBalle
-            self.HitboxBalleB.x = self.XBalleB
-            self.HitboxBalleB.y = self.YBalleB
-            pygame.draw.rect(fenetre, ROUGE_CLAIR, (joueur.XBalleA, joueur.YBalleA, joueur.LargBalle, joueur.LongBalle))
-            pygame.draw.rect(fenetre, ROUGE_CLAIR, (joueur.XBalleB, joueur.YBalleB, joueur.LargBalle, joueur.LongBalle))
-            if self.YBalleA < 0:
-                self.BalleTiree = False
-
-joueur = JOUEUR()
-
 class METEOR:
     def __init__(self):
         self.detruit = False
+        self.toucher = False # vérifie si le joeur est toucher
         self.reset()
         self.division()
 
@@ -480,7 +138,7 @@ class METEOR:
 
                 else: # si la balle B touche pas
                     joueur.BalleTiree = False # on arrete le tir
-                    if self.rayon < 20: # on vérifie la taille du météor --> évite de trop petit météor
+                    if self.rayon < 20: # on vérifie la taille du météor évite de trop petit météor
                         self.reset()
                     else: # si assez grand on le divise
                         self.detruit = True
@@ -494,6 +152,18 @@ class METEOR:
                     self.detruit = True
                     self.division()
 
+        # Si joueur touche météor
+        if not self.toucher:
+            if self.hitbox.colliderect(joueur.HitboxA) or self.hitbox.colliderect(joueur.HitboxB):
+                joueur.position_init() # on réinitialise la position du joueur
+                joueur.vie -= 1 # on retire une vie
+                self.toucher = True # on active l'immortalité
+                print("Dichotomie dans ta gueule.") # d'accord Tom
+
+                if joueur.vie == 0: # Perdu --> modifier plus tard
+                    pygame.display.quit()
+                    sys.exit()
+
     """intervient lors de la divsion du météor"""
     def division(self):
         # M = moitié A ; m = moitié B
@@ -505,7 +175,7 @@ class METEOR:
 
     def dessine_division(self):
         if self.moitieA:
-            pygame.draw.circle(fenetre, ROUGE_CLAIR, (self.Mx, self.My), self.taille)
+            pygame.draw.circle(fenetre, MARRON, (self.Mx, self.My), self.taille)
 
         if self.moitieB:
             pygame.draw.circle(fenetre, MARRON, (self.mx, self.my), self.taille)
@@ -567,6 +237,15 @@ class METEOR:
                 self.moitieB = False
                 print("toucher B (droite)")
 
+        # Si joueur touche une moitié de météor
+        if (self.hitbox.colliderect(joueur.HitboxA) or self.hitbox.colliderect(joueur.HitboxB)) or (self.scdHitbox.colliderect(joueur.HitboxA) or self.scdHitbox.colliderect(joueur.HitboxB)):
+            joueur.position_init()
+            joueur.vie -= 1
+            print("Dichotomie dans ta gueule.")
+            if joueur.vie == 0:
+                pygame.display.quit()
+                sys.exit()
+
         # si les deux moitié sont plus la
         if not self.moitieA and not self.moitieB :
             self.detruit = False
@@ -575,6 +254,285 @@ class METEOR:
 # Initialisation des météores
 NB_METEOR = 5
 METEORS = [METEOR() for _ in range(NB_METEOR)]
+
+class JOUEUR:
+    def __init__(self):
+        #définition points triangles
+        self.position_init()
+
+        #*****************Autre données*****************
+        self.compteur = 0 # pour modifier le feu du réacteur
+        self.VitBalle = 50
+        self.LongBalle, self.LargBalle = 20, 4
+        self.cooldown = 250 # correspond à 0.25 secondes
+        self.XBalleA, self.YBalleA = self.Hx_PG - 2, self.Hy_PG - int(self.LongBalle/2) # position balle canon gauche
+        self.XBalleB, self.YBalleB = self.Hx_PD - 2, self.Hy_PD - int(self.LongBalle/2) #position balle canon droit
+        self.BalleTiree = False # vérifie pour les deux balles --> à supprimer par la suite
+        self.BalleATiree = False
+        self.BalleBTiree = False
+        self.DernierTirDelai = 0
+        self.HitboxBalleA = pygame.Rect(self.XBalleA, self.YBalleA, self.LargBalle, self.LongBalle) #hitbox balle A
+        self.HitboxBalleB = pygame.Rect(self.XBalleB, self.YBalleB, self.LargBalle, self.LongBalle) #hitbox balle B
+        self.vie = 4
+        self.HitboxHS = False
+        self.TIMER_EVENT = pygame.USEREVENT + 1
+
+    def position_init(self):
+        """
+        signification abréviation:
+
+        PP --> partie principale --> H 40px
+        PG --> partie gauche --> H 25px
+        PD --> partie droite --> H 25px
+        PR --> partie réacteur --> H 20px
+        PRC --> partie réacteur centre --> H 10px
+        """
+        #*****************Partie Principale*****************
+
+        # hauteur
+        self.Hx_PP, self.Hy_PP = 400, 400
+        # sommet gauche
+        self.Gx_PP, self.Gy_PP = 390, 440
+        # sommet droit
+        self.Dx_PP, self.Dy_PP = 410, 440
+        # ensemble
+        self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
+
+        #*****************Partie Gauche*****************
+
+        # hauteur
+        self.Hx_PG, self.Hy_PG = 390, 415
+        # sommet gauche
+        self.Gx_PG, self.Gy_PG = 385, 440
+        # sommet droi
+        self.Dx_PG, self.Dy_PG = 395, 440
+        # ensemble
+        self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
+
+        #*****************Partie Droite*****************
+
+        # hauteur
+        self.Hx_PD, self.Hy_PD = 410, 415
+        # sommet gauche
+        self.Gx_PD, self.Gy_PD = 405, 440
+        # sommet droit
+        self.Dx_PD, self.Dy_PD = 415, 440
+        # ensemble
+        self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
+
+        #*****************Partie réacteur*****************
+
+        # Hauteur réacteur
+        self.Hx_PR, self.Hy_PR = 400, 460
+        self.Hx_PRC, self.Hy_PRC = 400, 450
+        # sommet gauche
+        self.Gx_PR, self.Gy_PR = 395, 440
+        self.Gx_PRC, self.Gy_PRC = 398, 440
+        # sommet droit
+        self.Dx_PR, self.Dy_PR = 405, 440
+        self.Dx_PRC, self.Dy_PRC = 402, 440
+        # ensemble
+        self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
+        self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
+
+        self.HitboxA = pygame.Rect(self.Gx_PG, self.Hy_PG, self.Dx_PD-self.Gx_PG, self.Gy_PG-self.Hy_PG) #Hitbox vaisseau
+        self.HitboxB = pygame.Rect(self.Dx_PG, self.Hy_PP, self.Gx_PD-self.Dx_PG, self.Hy_PG-self.Hy_PP) #Hitbox vaisseau
+
+    def dessine(self):
+        pygame.draw.polygon(fenetre, GRIS_FONCER,  self.trg_PP)
+        pygame.draw.polygon(fenetre, GRIS,  self.trg_PG)
+        pygame.draw.polygon(fenetre, GRIS,  self.trg_PD)
+        pygame.draw.polygon(fenetre, BLEU,  self.trg_PR)
+        pygame.draw.polygon(fenetre, BLEU_CLAIR,  self.trg_PRC)
+
+    def bouge(self, current_time):
+        #**********************************avec les flèches**********************************
+
+        # Aller à gauche
+        if keys[pygame.K_LEFT] or keys[pygame.K_a]: # a=q touche qwerty
+            if  self.Gx_PG-5>=0: #aller à gauche
+                #*****************Partie Principale*****************
+                self.Hx_PP -= 5
+                self.Gx_PP -= 5
+                self.Dx_PP -= 5
+                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
+                #*****************Partie Gauche*****************
+                self.Hx_PG -= 5
+                self.Gx_PG -= 5
+                self.Dx_PG -= 5
+                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
+                #*****************Partie Droite*****************
+                self.Hx_PD -= 5
+                self.Gx_PD -= 5
+                self.Dx_PD -= 5
+                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
+                #*****************Partie réacteur*****************
+                self.Hx_PR -= 5
+                self.Hx_PRC -= 5
+                self.Gx_PR -= 5
+                self.Gx_PRC -= 5
+                self.Dx_PR -= 5
+                self.Dx_PRC -= 5
+                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
+                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
+
+        # Aller à droite
+        if keys[pygame.K_RIGHT] or keys[pygame.K_d]:
+            if  self.Dx_PD+2<LARGEUR:  #aller à droite
+                #*****************Partie Principale*****************
+                self.Hx_PP += 5
+                self.Gx_PP += 5
+                self.Dx_PP += 5
+                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
+                #*****************Partie Gauche*****************
+                self.Hx_PG += 5
+                self.Gx_PG += 5
+                self.Dx_PG += 5
+                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
+                #*****************Partie Droite*****************
+                self.Hx_PD += 5
+                self.Gx_PD += 5
+                self.Dx_PD += 5
+                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
+                #*****************Partie réacteur*****************
+                self.Hx_PR += 5
+                self.Hx_PRC += 5
+                self.Gx_PR += 5
+                self.Gx_PRC += 5
+                self.Dx_PR += 5
+                self.Dx_PRC += 5
+                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
+                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
+
+        # Aller en haut
+        if keys[pygame.K_UP] or keys[pygame.K_w]: # w=z touche qwerty
+            if  self.Hy_PG-2>=0: #aller en haut
+                #*****************Partie Principale*****************
+                self.Hy_PP -= 5
+                self.Gy_PP -= 5
+                self.Dy_PP -= 5
+                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
+                #*****************Partie Gauche*****************
+                self.Hy_PG -= 5
+                self.Gy_PG -= 5
+                self.Dy_PG -= 5
+                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
+                #*****************Partie Droite*****************
+                self.Hy_PD -= 5
+                self.Gy_PD -= 5
+                self.Dy_PD -= 5
+                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
+                #*****************Partie réacteur*****************
+                self.Hy_PR -= 5
+                self.Hy_PRC -= 5
+                self.Gy_PR -= 5
+                self.Gy_PRC -= 5
+                self.Dy_PR -= 5
+                self.Dy_PRC -= 5
+                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
+                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
+
+        # Aller en bas
+        if keys[pygame.K_DOWN] or keys[pygame.K_s]:
+            if  self.Dy_PD+2<HAUTEUR:  #aller en bas
+                #*****************Partie Principale*****************
+                self.Hy_PP += 5
+                self.Gy_PP += 5
+                self.Dy_PP += 5
+                self.trg_PP = [(self.Hx_PP, self.Hy_PP), (self.Gx_PP, self.Gy_PP), (self.Dx_PP, self.Dy_PP)]
+                #*****************Partie Gauche*****************
+                self.Hy_PG += 5
+                self.Gy_PG += 5
+                self.Dy_PG += 5
+                self.trg_PG = [(self.Hx_PG, self.Hy_PG), (self.Gx_PG, self.Gy_PG), (self.Dx_PG, self.Dy_PG)]
+                #*****************Partie Droite*****************
+                self.Hy_PD += 5
+                self.Gy_PD += 5
+                self.Dy_PD += 5
+                self.trg_PD = [(self.Hx_PD, self.Hy_PD), (self.Gx_PD, self.Gy_PD), (self.Dx_PD, self.Dy_PD)]
+                #*****************Partie réacteur*****************
+                self.Hy_PR += 5
+                self.Hy_PRC += 5
+                self.Gy_PR += 5
+                self.Gy_PRC += 5
+                self.Dy_PR += 5
+                self.Dy_PRC += 5
+                self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
+                self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
+
+        # faire bouger le feu du réacteur
+        self.compteur +=1
+        if self.compteur<=5:
+            self.Hy_PR += 1
+            self.Hy_PRC += 1
+        elif self.compteur>5 and self.compteur<=10:
+            self.Hy_PR -= 1
+            self.Hy_PRC -= 1
+        elif self.compteur>10:
+            self.compteur=0
+
+        # on met à jour la position des points des triangles
+        self.trg_PR = [(self.Hx_PR, self.Hy_PR), (self.Gx_PR, self.Gy_PR), (self.Dx_PR, self.Dy_PR)]
+        self.trg_PRC = [(self.Hx_PRC, self.Hy_PRC), (self.Gx_PRC, self.Gy_PRC), (self.Dx_PRC, self.Dy_PRC)]
+
+        for meteor in METEORS:
+            if meteor.toucher:  # Vérifie si ce météore particulier a touché le joueur
+                pygame.time.set_timer(self.TIMER_EVENT, 2000)  # Lancer le timer de 2 secondes
+                self.HitboxA = pygame.Rect(10000, self.Hy_PG, self.Dx_PD - self.Gx_PG, self.Gy_PG - self.Hy_PG)  # Hitbox vaisseau
+                self.HitboxB = pygame.Rect(10000, self.Hy_PP, self.Gx_PD - self.Dx_PG, self.Hy_PG - self.Hy_PP)  # Hitbox vaisseau
+                meteor.toucher = False  # Réinitialiser l'état de ce météore
+                self.HitboxHS = True
+
+        if event.type == self.TIMER_EVENT:  # Timer de 2 secondes terminé
+            self.HitboxHS = False
+
+        if not self.HitboxHS:
+            self.HitboxA = pygame.Rect(self.Gx_PG, self.Hy_PG, self.Dx_PD-self.Gx_PG, self.Gy_PG-self.Hy_PG) #Hitbox vaisseau
+            self.HitboxB = pygame.Rect(self.Dx_PG, self.Hy_PP, self.Gx_PD-self.Dx_PG, self.Hy_PG-self.Hy_PP) #Hitbox vaisseau
+
+    def tir(self, current_time):
+        if current_time - self.DernierTirDelai > self.cooldown and not self.BalleTiree:
+            self.BalleTiree = True
+            self.DernierTirDelai = current_time
+            self.XBalleA, self.YBalleA = self.Hx_PG - 2, self.Hy_PG - int(self.LongBalle/2) # position balle canon gauche
+            self.XBalleB, self.YBalleB = self.Hx_PD - 2, self.Hy_PD - int(self.LongBalle/2) #position balle canon droit
+
+    def update_balle(self):
+        if self.BalleTiree: # vérifier si les balle n'est pas déjà tirée
+            #déplacement de la balle A et sa Hitbox
+            self.YBalleA -= self.VitBalle
+            self.HitboxBalleA.x = self.XBalleA
+            self.HitboxBalleA.y = self.YBalleA
+            #déplacement de la balle B et sa Hitbox
+            self.YBalleB -= self.VitBalle
+            self.HitboxBalleB.x = self.XBalleB
+            self.HitboxBalleB.y = self.YBalleB
+            #dessiner les balles
+            pygame.draw.rect(fenetre, ROUGE_CLAIR, (joueur.XBalleA, joueur.YBalleA, joueur.LargBalle, joueur.LongBalle))
+            pygame.draw.rect(fenetre, ROUGE_CLAIR, (joueur.XBalleB, joueur.YBalleB, joueur.LargBalle, joueur.LongBalle))
+            # si les balles quittent la fenêtre arrêter le tir
+            if self.YBalleA < 0:
+                self.BalleTiree = False
+
+joueur = JOUEUR()
+
+class VIE:
+    def __init__(self):
+        self.rayon = 15
+        self.y = 20
+        self.xA = 10 + self.rayon
+        self.xB = self.xA + self.rayon*2 + 10
+        self.xC = self.xB + self.rayon*2 + 10
+
+    def dessine(self):
+        if joueur.vie>=2:
+            pygame.draw.circle(fenetre, VERT_CLAIR, (self.xA, self.y), self.rayon)
+        if joueur.vie>=3:
+            pygame.draw.circle(fenetre, VERT_CLAIR, (self.xB, self.y), self.rayon)
+        if joueur.vie>=4:
+            pygame.draw.circle(fenetre, VERT_CLAIR, (self.xC, self.y), self.rayon)
+
+vie = VIE()
 
 #*****************Boucle Principale*****************
 
@@ -603,7 +561,7 @@ while True:
 
     #dessiner et bouger le joueur
     joueur.dessine()
-    joueur.bouge()
+    joueur.bouge(current_time)
 
     for meteors in METEORS:
         if not meteors.detruit:
@@ -617,6 +575,8 @@ while True:
         joueur.tir(current_time)
 
     joueur.update_balle()
+
+    vie.dessine()
 
     pygame.display.flip()
 
@@ -632,7 +592,12 @@ IDEE :
     si on déplace le vaisseau à gauche ou à droite --> faire pencher le vaisseau (à faire en dernier)
 
 A FAIRE :
-    trouver un moyen de pouvoir détruir un météor divisé sans que l'autre disparaisse
-    faire la barre de vie et le score
+    faire la barre de vie et le score --> trouver moyen de faire 2 secondes d'immortalité
+        idée --> désactiver la hitbox avec un booléen par exemple ; problème --> devoir rappeler la hitbox à chaque fois
+                potentielle solution --> mettre la hitbox dans une méthode à part --> évite de rappeller le vaisseau à chaque fois
+
+             --> faire apparaître un venir un vaisseau du dessous --> pas controler par le joueur, donc rajouter hitbox après
+
+             --> pour la vie, faire une classe à part
     faire cinématique de début (vaisseau qui décolle) --> si le joueur perd on repasse sur cet écran
 """
