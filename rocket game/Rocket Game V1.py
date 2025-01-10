@@ -11,6 +11,7 @@ pygame.display.set_caption("SpaceShooter")
 
 #couleurs (rgb)
 
+NOIR = (0, 0, 0)
 BLANCA = (255, 255, 255)
 BLANCB = (190, 190, 190)
 BLANCC = (130, 130, 130)
@@ -72,7 +73,7 @@ mon_espace = [Etoile() for _ in range(NB_ETOILES)]
 
 class METEOR:
     def __init__(self):
-        self.detruit = False
+        self.detruit = False # vérifie si le météor est détruit
         self.toucher = False # vérifie si le joeur est toucher
         self.reset()
         self.division()
@@ -132,25 +133,41 @@ class METEOR:
                     joueur.BalleTiree = False # on arrete le tir
                     if self.rayon < 23: # on vérifie la taille du météor --> évite de trop petit météor
                         self.reset()
+                        if self.rayon<=12:
+                            joueur.score+=30
+                        else:
+                            joueur.score += 20
                     else: # si assez grand on le divise
                         self.detruit = True
                         self.division()
+                        joueur.score += 10
 
                 else: # si la balle B touche pas
                     joueur.BalleTiree = False # on arrete le tir
                     if self.rayon < 20: # on vérifie la taille du météor évite de trop petit météor
                         self.reset()
+                        if self.rayon<=12:
+                            joueur.score+=30
+                        else:
+                            joueur.score += 20
+
                     else: # si assez grand on le divise
                         self.detruit = True
                         self.division()
+                        joueur.score += 10
 
             elif joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox): # si la balle b touche --> léger problème de detection
                 joueur.BalleTiree = False # on arrete le tir
                 if self.rayon < 20: # on vérifie la taille du météor --> évite de trop petit météor
                     self.reset()
+                    if self.rayon<=12:
+                        joueur.score+=30
+                    else:
+                        joueur.score += 20
                 else: # si assez grand on le divise
                     self.detruit = True
                     self.division()
+                    joueur.score += 5
 
         # Si joueur touche météor
         if not self.toucher:
@@ -159,10 +176,6 @@ class METEOR:
                 joueur.vie -= 1 # on retire une vie
                 self.toucher = True # on active l'immortalité
                 print("Dichotomie dans ta gueule.") # d'accord Tom
-
-                if joueur.vie == 0: # Perdu --> modifier plus tard
-                    pygame.display.quit()
-                    sys.exit()
 
     """intervient lors de la divsion du météor"""
     def division(self):
@@ -208,16 +221,17 @@ class METEOR:
                 if joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox): # on vérifie pour la balle B
                     joueur.BalleTiree = False # on arrete le tir
                     self.moitieA = False
+                    joueur.score+=30
 
                 else: # si la balle B touche pas --> prévu en cas de modification des tirs
                     joueur.BalleTiree = False # on arrete le tir
                     self.moitieA = False
-                    print("toucher A (gauche)")
+                    joueur.score+=30
 
             elif joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.hitbox): # si la balle b touche --> léger problème de detection
                 joueur.BalleTiree = False # on arrete le tir
                 self.moitieA = False
-                print("toucher A (droite)")
+                joueur.score+=30
 
         # on vérifie les collisions pour la moitié B
         if joueur.BalleTiree and self.moitieB:
@@ -225,29 +239,30 @@ class METEOR:
                 if joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.scdHitbox): # on vérifie pour la balle B
                     joueur.BalleTiree = False # on arrete le tir
                     self.moitieB = False
-                    print("toucher B (2 balles)")
+                    joueur.score+=30
 
                 else: # si la balle B touche pas --> prévu en cas de modification des tirs
                     joueur.BalleTiree = False # on arrete le tir
                     self.moitieB = False
-                    print("toucher B (gauche)")
+                    joueur.score+=30
 
             elif joueur.HitboxBalleB and joueur.HitboxBalleB.colliderect(self.scdHitbox): # si la balle b touche --> léger problème de detection
                 joueur.BalleTiree = False # on arrete le tir
                 self.moitieB = False
-                print("toucher B (droite)")
+                joueur.score+=30
+
 
         # Si joueur touche une moitié de météor
-        if (self.hitbox.colliderect(joueur.HitboxA) or self.hitbox.colliderect(joueur.HitboxB)) or (self.scdHitbox.colliderect(joueur.HitboxA) or self.scdHitbox.colliderect(joueur.HitboxB)):
-            joueur.position_init()
-            joueur.vie -= 1
-            print("Dichotomie dans ta gueule.")
-            if joueur.vie == 0:
-                pygame.display.quit()
-                sys.exit()
+        if not self.toucher:
+            if (self.hitbox.colliderect(joueur.HitboxA) or self.hitbox.colliderect(joueur.HitboxB)) or (self.scdHitbox.colliderect(joueur.HitboxA) or self.scdHitbox.colliderect(joueur.HitboxB)):
+                joueur.position_init() # on réinitialise la position du joueur
+                joueur.vie -= 1 # on retire une vie
+                self.toucher = True # on active l'immortalité
+                print("Dichotomie dans ta gueule.") # d'accord Tom
 
         # si les deux moitié sont plus la
         if not self.moitieA and not self.moitieB :
+            print(f"votre score est de {joueur.score}")
             self.detruit = False
             self.reset()
 
@@ -276,6 +291,7 @@ class JOUEUR:
         self.vie = 4
         self.HitboxHS = False
         self.TIMER_EVENT = pygame.USEREVENT + 1
+        self.score = 0
 
     def position_init(self):
         """
@@ -534,6 +550,20 @@ class VIE:
 
 vie = VIE()
 
+#fin du jeu
+def mort():
+    pygame.font.init()
+    fenetre.fill(NOIR)
+    pygame.time.delay(500)
+    font = pygame.font.Font(None, 36)
+    text = font.render("Game Over! Your score is " + str(joueur.score), True, BLANCA)
+    text_rect = text.get_rect(center=(LARGEUR / 2, HAUTEUR / 2))
+    fenetre.blit(text, text_rect)
+    pygame.display.flip()
+    pygame.time.delay(3000)
+    pygame.quit()
+    sys.exit()
+
 #*****************Boucle Principale*****************
 
 n=0
@@ -579,6 +609,9 @@ while True:
     vie.dessine()
 
     pygame.display.flip()
+
+    if joueur.vie == 0:
+        mort()
 
     fps.tick(60)
     n += 1
