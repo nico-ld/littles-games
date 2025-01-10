@@ -6,6 +6,7 @@ LARGEUR = 800
 HAUTEUR = 600
 
 pygame.display.init()
+pygame.font.init()
 fenetre = pygame.display.set_mode((LARGEUR, HAUTEUR))
 pygame.display.set_caption("SpaceShooter")
 
@@ -534,25 +535,51 @@ joueur = JOUEUR()
 
 class VIE:
     def __init__(self):
-        self.rayon = 15
-        self.y = 20
-        self.xA = 10 + self.rayon
-        self.xB = self.xA + self.rayon*2 + 10
-        self.xC = self.xB + self.rayon*2 + 10
+        """
+        Classe représentant les vaisseaux affichés pour représenter les vies du joueur.
+
+        Chaque vaisseau est constitué de trois parties :
+        PP --> Partie principale (largeur 20px, hauteur 10px)
+        PG --> Partie gauche (largeur 5px, hauteur 5px)
+        PD --> Partie droite (largeur 5px, hauteur 5px)
+        """
+        # Définir les triangles de base pour un vaisseau
+        self.base_vaisseau = {
+            "PP": [(20, 10), (14, 40), (26, 40)],  # Partie principale
+            "PG": [(14, 18), (11, 40), (17, 40)],  # Partie gauche
+            "PD": [(26, 18), (23, 40), (29, 40)], # Partie droite
+        }
+
+        # Position de départ pour le premier vaisseau
+        self.vaisseaux = []
+        for i in range(3):  # Trois vaisseaux représentant les vies
+            offset_x = i * 30  # Espacement horizontal entre les vaisseaux
+            vaisseau = {
+                part: [(x + offset_x, y) for x, y in coords]
+                for part, coords in self.base_vaisseau.items()
+            }
+            self.vaisseaux.append(vaisseau)
 
     def dessine(self):
-        if joueur.vie>=2:
-            pygame.draw.circle(fenetre, VERT_CLAIR, (self.xA, self.y), self.rayon)
-        if joueur.vie>=3:
-            pygame.draw.circle(fenetre, VERT_CLAIR, (self.xB, self.y), self.rayon)
-        if joueur.vie>=4:
-            pygame.draw.circle(fenetre, VERT_CLAIR, (self.xC, self.y), self.rayon)
+        """
+        Dessine les vaisseaux en fonction du nombre de vies restantes.
+        """
+        # Le joueur commence avec 4 vies, dont une est déjà utilisée pour le vaisseau contrôlé.
+        # Nous affichons donc les 3 vaisseaux représentant les vies restantes.
+
+        vies_restantes = max(0, joueur.vie - 1)  # Parce que le joueur a déjà un vaisseau actif
+
+        # Limiter à 3 vaisseaux maximum
+        for i in range(min(vies_restantes, len(self.vaisseaux))):
+            vaisseau = self.vaisseaux[i]
+            for part, coords in vaisseau.items():
+                color = GRIS_FONCER if part == "PP" else GRIS
+                pygame.draw.polygon(fenetre, color, coords)
 
 vie = VIE()
 
 #fin du jeu
 def mort():
-    pygame.font.init()
     fenetre.fill(NOIR)
     pygame.time.delay(500)
     font = pygame.font.Font(None, 36)
@@ -566,6 +593,7 @@ def mort():
 
 #*****************Boucle Principale*****************
 
+font = pygame.font.Font(None, 36)  # Police par défaut, taille 36
 n=0
 fps = pygame.time.Clock()
 while True:
@@ -607,6 +635,11 @@ while True:
     joueur.update_balle()
 
     vie.dessine()
+
+    score_text = f"Score: {joueur.score}"
+    text_surface = font.render(score_text, True, VERT)
+    text_rect = text_surface.get_rect(topright=(LARGEUR - 10, 10))  # En haut à droite avec marge de 10px
+    fenetre.blit(text_surface, text_rect)
 
     pygame.display.flip()
 
