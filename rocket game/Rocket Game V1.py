@@ -300,15 +300,16 @@ class JOUEUR:
         self.XBalleA, self.YBalleA = self.Hx_PG - 2, self.Hy_PG - int(self.LongBalle/2) # position balle canon gauche
         self.XBalleB, self.YBalleB = self.Hx_PD - 2, self.Hy_PD - int(self.LongBalle/2) #position balle canon droit
         self.BalleTiree = False # vérifie pour les deux balles --> à supprimer par la suite
-        self.BalleATiree = False
+        self.BalleATiree = False # servira plus tard
         self.BalleBTiree = False
         self.DernierTirDelai = 0
         self.HitboxBalleA = pygame.Rect(self.XBalleA, self.YBalleA, self.LargBalle, self.LongBalle) #hitbox balle A
         self.HitboxBalleB = pygame.Rect(self.XBalleB, self.YBalleB, self.LargBalle, self.LongBalle) #hitbox balle B
-        self.vie = 4
-        self.HitboxHS = False
-        self.TIMER_EVENT = pygame.USEREVENT + 1
-        self.score = 0
+        self.vie = 4 # vie initiale
+        self.HitboxHS = False # désactive la hitbox si le joueur est touché
+        self.TIMER_EVENT = pygame.USEREVENT + 1 #permet de faire un timer pour l'invinncibilité
+        self.score = 0 # score
+        self.invincible = 0 # compteur pour fair clignoter le joueur
 
     def position_init(self):
         """
@@ -376,11 +377,22 @@ class JOUEUR:
         self.spawn = True
 
     def dessine(self):
-        pygame.draw.polygon(fenetre, GRIS_FONCER,  self.trg_PP)
-        pygame.draw.polygon(fenetre, GRIS,  self.trg_PG)
-        pygame.draw.polygon(fenetre, GRIS,  self.trg_PD)
-        pygame.draw.polygon(fenetre, BLEU,  self.trg_PR)
-        pygame.draw.polygon(fenetre, BLEU_CLAIR,  self.trg_PRC)
+        if self.HitboxHS:
+            self.invincible += 1
+            if self.invincible < 6:
+                pygame.draw.polygon(fenetre, GRIS_FONCER,  self.trg_PP)
+                pygame.draw.polygon(fenetre, GRIS,  self.trg_PG)
+                pygame.draw.polygon(fenetre, GRIS,  self.trg_PD)
+                pygame.draw.polygon(fenetre, BLEU,  self.trg_PR)
+                pygame.draw.polygon(fenetre, BLEU_CLAIR,  self.trg_PRC)
+            if self.invincible == 12:
+                self.invincible = 0
+        else:
+            pygame.draw.polygon(fenetre, GRIS_FONCER,  self.trg_PP)
+            pygame.draw.polygon(fenetre, GRIS,  self.trg_PG)
+            pygame.draw.polygon(fenetre, GRIS,  self.trg_PD)
+            pygame.draw.polygon(fenetre, BLEU,  self.trg_PR)
+            pygame.draw.polygon(fenetre, BLEU_CLAIR,  self.trg_PRC)
 
     def bouge(self, current_time):
 
